@@ -3,7 +3,7 @@ import uuid
 import flask
 import urllib
 from PIL import Image
-import tensorflow
+import tensorflow``
 import numpy as np
 from tensorflow import keras
 from keras.models import load_model
@@ -133,4 +133,4 @@ def success():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, host='0.0.0.0')
