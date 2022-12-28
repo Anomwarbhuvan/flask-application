@@ -30,7 +30,7 @@ classes = ['POTATO BAD',
            'TOMATO BAD Fruit Cracking',
            'TOMATO BAD Wilt',
            'TOMATO GOOD']
-classes_sh = ['0 DAYS',
+classes_sh = ['0 DAYS-THROW IT',
               '1-5 DAYS',
               '5-10 DAYS',
               '10-15 DAYS',
@@ -38,7 +38,7 @@ classes_sh = ['0 DAYS',
               'USE IT ASAP OR THROW IT']
 
 
-def predict1(filename, model):
+def predict1(filename, model, class1):
     img = load_img(filename, target_size=(256, 256))
     img = img_to_array(img)
     img = img.reshape(1, 256, 256, 3)
@@ -48,23 +48,9 @@ def predict1(filename, model):
     result = model.predict(img)
     result = np.argmax(result, axis=-1)
     # print(result)
-    class_result = classes[result[0]]
+    class_result = result[0]
 
     return class_result
-
-
-def predict_sh(filename, model_sh):
-    img = load_img(filename, target_size=(256, 256))
-    img = img_to_array(img)
-    img = img.reshape(1, 256, 256, 3)
-
-    img = img.astype('float32')
-    img = img/255.0
-    result_sh = model_sh.predict(img)
-    result_sh = np.argmax(result_sh, axis=-1)
-    class_result_sh = classes_sh[result_sh[0]]
-
-    return class_result_sh
 
 
 @app.route('/')
@@ -89,12 +75,24 @@ def success():
                 output.close()
                 img = filename
 
-                class_result = predict1(img_path, model)
-                class_result_sh = predict_sh(img_path, model_sh)
+                # class_result = predict1(img_path, model, classes)
+                # class_result_sh = predict1(img_path, model_sh, classes_sh)
+
+                class_result = predict1(img_path, model, classes)
+                eligible = 'NOT USABLE FOR FURTHER PROCESSING'
+                if (class_result == 6):
+                    eligible = 'CAN BE USED FOR KETCHUP'
+                elif (class_result == 1):
+                    eligible = 'CAN BE USED FOR FRENCH FRIES'
+
+                class_result = classes[class_result]
+                class_result_sh = predict1(img_path, model_sh, classes_sh)
+                class_result_sh = classes_sh[class_result_sh]
 
                 predictions = {
                     "class1": class_result,
                     "prob1": class_result_sh,
+                    "eligible": eligible,
                 }
 
             except Exception as e:
@@ -113,11 +111,20 @@ def success():
                 img_path = os.path.join(target_img, file.filename)
                 img = file.filename
 
-                class_result = predict1(img_path, model)
-                class_result_sh = predict_sh(img_path, model_sh)
+                class_result = predict1(img_path, model, classes)
+                eligible = 'NOT USABLE FOR FURTHER PROCESSING'
+                if (class_result == 6):
+                    eligible = 'CAN BE USED FOR KETCHUP'
+                elif (class_result == 1):
+                    eligible = 'CAN BE USED FOR FRENCH FRIES'
+
+                class_result = classes[class_result]
+                class_result_sh = predict1(img_path, model_sh, classes_sh)
+                class_result_sh = classes_sh[class_result_sh]
                 predictions = {
                     "class1": class_result,
                     "prob1": class_result_sh,
+                    "eligible": eligible,
                 }
 
             else:
@@ -133,4 +140,4 @@ def success():
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
